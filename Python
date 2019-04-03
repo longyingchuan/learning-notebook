@@ -1,4 +1,4 @@
-""" why we should set if __name__ == '__main__' when writing a function """
+1.why we should set if __name__ == '__main__' when writing a function
 
 PI = 3.14
 
@@ -9,3 +9,78 @@ if __name__ == "__main__":
     main()
     
 when using this by other functions , it won't print result to the screen
+
+2.how to check the version of python
+
+cmd  python -V
+IDLE import sys sys.version
+shell python -V
+
+3.how to Install Software Packages
+
+cmd    found the pip dir,then pip install + module name, 
+       when using the version of python >3 ,then pip3 or pip3.6 install +module name
+shell  intalling online is the same to the cmd
+       install withou online is the procedure:
+       1.安装python2.7.3
+       Cent OS 6.5默认装的有python2.6.6，需要重新安装python2.7.3
+       下载地址：https://www.python.org/downloads/source/ 
+       解压缩到当前目录：tar -zxvf Python-2.7.3.tgz 
+       打开刚解压的文件夹：cd Python-2.7.3 
+       安装python2.7.11： 
+       ./configure –prefix=/usr/local/python2.7.3（此处因为是新服务器，没有装gcc，出现报错，安装好gcc后ok） 
+       make 
+       make install 
+       （以上这两步等的时间少长点） 
+        建立软连接：ln -s /usr/local/python2.7.3/bin/python /bin/python
+        运行python：python
+        出现python版本等信息，证明安装成功 
+        2.安装numpy
+        numpy是pandas的依赖库，所以先安装numpy 
+        下载地址：https://pypi.python.org/pypi/numpy/1.9.2 ,下载numpy-1.9.2.tar.gz (md5, pgp)这个文件 
+        解压缩：tar -zxvf numpy-1.9.2.tar.gz 
+        进入解压后的文件夹：cd numpy-1.9.2 
+        安装numpy：python setup.py install 
+        验证安装成功： 
+        先离开numpy的源文件夹（否则import时会报错）：cd ..
+        启动python：python 
+        import numpy as np 
+        没提示出错，安装成功 
+        3.安装pandas
+        3.1安装zlib,zlib-devel两个RPM包
+                            rpm -ivh zlib*.rpm
+        3.2安装pandas依赖module。包括：
+        Bottleneck： 解压tar包或zip包，进入解压目录，执行python setup.py install
+        ez_setup:                                        解压tar包或zip包，进入解压目录，执行python setup.py install
+        numexpr：                        解压tar包或zip包，进入解压目录，执行python setup.py install
+        python-dateutil： 解压tar包或zip包，进入解压目录，执行python setup.py install
+        pytz：      解压tar包或zip包，进入解压目录，执行python setup.py install
+        setuptools:     解压tar包或zip包，进入解压目录，执行python setup.py install
+        six：    解压tar包或zip包，进入解压目录，执行python setup.py install
+        3.3安装pandas
+        下载地址：https://pypi.python.org/pypi/pandas/0.16.2 ,下载pandas-0.16.2.tar.gz (md5)这个文件 
+        解压缩：tar -zxvf pandas-0.16.2.tar.gz
+        进入解压后的文件夹：cd pandas-0.16.2
+        安装pandas：python setup.py install 
+        验证安装成功： 
+        先离开pandas的源文件夹（否则import时会报错）：cd ..
+        启动python：python 
+        import pandas as pds 
+       没提示出错，安装成功
+
+4.how to check the dir of python
+
+import os; print os.__file__
+
+5.how to add and update a column of a datafeame
+
+a1 = [1,2,3,4]
+a2 = [2,3,4,5]
+a = pd.DataFrame(data = [a1,a2], columns = ['a1', 'a2', 'a3', 'a4'])
+add a column
+a['a5'] = [5,6]
+update a column
+a['a1'] = [4,5]
+
+
+
