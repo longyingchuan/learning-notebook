@@ -1,0 +1,11 @@
+""" why we should set if __name__ == '__main__' when writing a function """
+
+PI = 3.14
+
+def main():
+    print("PI:", PI)
+
+if __name__ == "__main__":
+    main()
+    
+when using this by other functions , it won't print result to the screen
