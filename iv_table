@@ -21,7 +21,6 @@ iv_table <- function(var, target, nclass = 10){
     b = ifelse(a==1,2,
         ifelse(a==nrow(result),a-1,
         ifelse(result$iv[a+1]>result$iv[a-1],a-1,a+1)))
-    print(result$class[1])
     if(str_detect(as.character(result$class[1]),']')){
       class_list = sapply(result$class[c(min(a,b),max(a,b))],function(x)str_split(x,','))
       str_class = paste(class_list[[1]][1],class_list[[2]][2],sep = ',')
