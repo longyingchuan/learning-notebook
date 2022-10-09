@@ -1,0 +1,42 @@
+iv_table <- function(var, target, nclass = 10){
+  library(riskr)
+  library(dplyr)
+  library(data.table)
+  library(stringr)
+  if(is.numeric(var)){
+    break_cut = unique(quantile(var, probs = seq(0,1,1/nclass), na.rm = T))
+    break_cut = c(-Inf, break_cut[2:(length(break_cut)-1)],Inf)
+    var = cut(var, breaks = break_cut,dig.lab = 10)
+    result = as.data.table(bt(var, target))
+  } else {
+    result = as.data.table(bt(var, target))
+    result = result[order(iv)]
+  }
+  na_row = result[is.na(class)]
+  result = result[!is.na(class)]
+  result = as.data.frame(result)
+  while(nrow(result)>10 || (nrow(result)<=10 && nrow(result)>5 && min(result$iv)<=0.0005)){
+    result$class = as.character(result$class)
+    a = which.min(result$iv)
+    b = ifelse(a==1,2,
+        ifelse(a==nrow(result),a-1,
+        ifelse(result$iv[a+1]>result$iv[a-1],a-1,a+1)))
+    print(result$class[1])
+    if(str_detect(as.character(result$class[1]),']')){
+      class_list = sapply(result$class[c(min(a,b),max(a,b))],function(x)str_split(x,','))
+      str_class = paste(class_list[[1]][1],class_list[[2]][2],sep = ',')
+    } else {
+      str_class = paste0(result$class[c(a,b)], collapse = ',')
+    }
+    result$class[c(a,b)] = str_class
+    result = as.data.table(result)
+    result = result[,.(count = sum(count), percent = sum(percent),
+                       target_count = sum(target_count), target_rate = sum(target_count)/sum(count),
+                       target_percent = sum(target_percent), non_target_count = sum(non_target_count),
+                       non_target_percent = sum(non_target_percent), odds = sum(target_count)/sum(non_target_count),
+                       woe = log(sum(target_percent)/sum(non_target_percent)),
+                       iv = (sum(target_percent)-sum(non_target_percent))*log(sum(target_percent)/sum(non_target_percent))),by=.(class)]
+    result = rbind(result,na_row)
+  }
+  return(list(odds_table = result, iv = sum(result[!is.infinite(result$iv),]$iv)))
+}
