@@ -1,3 +1,4 @@
+### R版本
 iv_table <- function(var, target, nclass = 10){
   library(riskr)
   library(dplyr)
@@ -39,3 +40,100 @@ iv_table <- function(var, target, nclass = 10){
   }
   return(list(odds_table = result, iv = sum(result[!is.infinite(result$iv),]$iv)))
 }
+
+
+
+### Python 版本
+import sys
+import numpy as np
+import pandas as pd
+import math
+def bt(var, target):
+    
+    def pct(x):
+        return len(x)/len(var)
+    
+    def target_rate(x):
+        return sum(x)/len(x)
+    
+    def target_percent(x):
+        return sum(x)/sum(target)
+    
+    def non_target_count(x):
+        return sum(1-x)
+    
+    def non_target_percent(x):
+        return sum(1-x)/sum(1-target)
+    
+    def odds(x):
+        return sum(x)/sum(1-x)
+    
+    def woe(x):
+        return np.log((sum(x)/sum(target))/(sum(1-x)/sum(1-target)))
+    
+    def iv(x):
+        return ((sum(x)/sum(target))-(sum(1-x)/sum(1-target)))*np.log((sum(x)/sum(target))/(sum(1-x)/sum(1-target)))
+    
+    a = target.groupby(var, dropna = False)
+    df = a.agg([('count' , 'count'),('percent', pct),('target_count', 'sum'), ('target_rate', target_rate),
+                 ('target_percent', target_percent), ('non_target_count', non_target_count),('non_target_percent', non_target_percent),
+                 ('odds', odds), ('woe', woe),('iv', iv)])
+    df.reset_index(inplace=True)
+    df.rename(columns = {var.name:'class'}, inplace = True)
+    return df
+
+def iv_table(var, target, nclass = 10):
+    if var.dtype=='object':
+        result = bt(var, target)
+        result.sort_values("iv",inplace=True)
+    else:
+        var_list = list(set(var))
+        break_cut = [i for i in var_list if not(math.isnan(i))] if len(var_list)<=10 else list(set(np.quantile(var.tolist(), q = np.arange(0, 1, 0.1))))
+        break_cut.sort()
+        break_cut = [-np.Inf] + break_cut[2:len(break_cut)-1] + [np.Inf]
+        var = pd.cut(var, bins = break_cut, precision=3)
+        result = bt(var, target)
+        
+    na_row = result.loc[result['class'].isnull()]
+    result = result.loc[~result['class'].isnull()]
+    
+    while result.shape[0]>10:
+        a = result['iv'].idxmin()
+        if a==0: 
+            b = 1
+        elif a==result.shape[0]:
+            b = a-1
+        elif result['iv'][a+1] > result['iv'][a-1]:
+            b = a-1
+        else:
+            b = a+1
+        if ']' in str(result['class'][0]):
+            class_str =  result['class'].iloc[[min(a,b),max(a,b)]].tolist()
+            new_interval = pd.Interval(left=class_str[0].left, right=class_str[1].right)
+            tmp = result['class'].tolist()
+            tmp[min(a,b)] = new_interval
+            tmp[max(a,b)] = new_interval
+            result['class'] = tmp
+        else:
+            class_str =  result['class'].iloc[[min(a,b),max(a,b)]].tolist()
+            new_class = class_str[0] + ',' + class_str[1]
+            tmp = result['class'].tolist()
+            tmp[min(a,b)] = new_class
+            tmp[max(a,b)] = new_class
+            result['class'] = tmp
+        data = result[['class','count','percent','target_count']].groupby('class', as_index = False)
+        df = data.sum()
+        df['target_rate'] = df['target_count']/df['count']
+        df['target_percent'] = df['target_count']/sum(df['target_count'])
+        df['non_target_count'] = df['count'] - df['target_count']
+        df['non_target_percent'] = df['non_target_count']/sum(df['non_target_count'])
+        df['odds'] = df['target_count']/df['non_target_count']
+        df['woe'] = np.log(df['target_percent']/df['non_target_percent'])
+        df['iv'] = (df['target_percent'] - df['non_target_percent'])*df['woe']
+        result = df
+    result['feature'] = var.name
+    return result, sum(result['iv'])
+
+
+
+
